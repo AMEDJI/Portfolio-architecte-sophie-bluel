@@ -128,8 +128,9 @@ li:hover {
 
 .filtres {
 	display: flex;
-	gap: 8px;
-	margin-bottom: 16px;
+	gap: 5px;
+	margin-bottom: 50px;
+	justify-content: center;
   }
   
   .filtres button {
@@ -139,14 +140,13 @@ li:hover {
 	border-radius: 16px;
 	background: white;
 	cursor: pointer;
+	margin: 5px;
   }
   .filtres button.active {
 	background: #1D6154;
 	color: #fff;
 	border-color: #1D6154;
   }
-  
-  
   
 
 .gallery {
@@ -161,6 +161,63 @@ li:hover {
 	width: 100%;
 
 }
+
+#log-In {
+	width: 50%;
+	margin: auto;
+
+}
+
+#log-In > * {
+	text-align: center;
+}
+
+#log-In h2{
+	margin-bottom: 20px;
+}
+
+#log-In form {
+	text-align: left;
+	margin-top:30px;
+	display: flex;
+	flex-direction: column;
+}
+
+  label {
+	margin-top: 30px;
+  }
+
+  #log-In input {
+	padding: 8px;
+	margin-top: 5px;
+	border: none;
+	border-radius: 4px;
+	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
+	height: 50px;
+  }
+  
+  button {
+	margin-top: 20px;
+	padding: 10px;
+	background-color: #1D6154;
+	color: white;
+	border: none;
+	border-radius: 60px;
+	font-family: 'Syne';
+	width: 180px;
+	text-align: center;
+	margin: 2em auto;
+  }
+
+  button:hover {
+	background-color: #1D6154;
+  }
+  .forgotPwd{
+	width: 50%;
+	margin: auto;
+	text-align: center;
+}
+
 #contact {
 	width: 50%;
 margin: auto;

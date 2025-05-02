@@ -67,7 +67,6 @@ console.log("Erreur lors de la récupération des données :", error);
 
 /**
  * Création des boutons de filtre et gerer l'état actif avec un Set minimal.
- * @param {Array} data - tableau des catégories depuis l'API
  */
 function afficherFiltresBoutons(data) {
     const container = document.querySelector('.filtres');
