@@ -103,4 +103,41 @@ function afficherFiltresBoutons(data) {
     });
   }
   
-  
+// Récupération du formulaire grâce à son id
+const form = document.getElementById('login-form');
+
+// On attend de voir ce que l'utilisateur envoie le formulaire et on empeche la page de se recahrger
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  // Récupération de ce que l'utilisateur a écrit dans les champs
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  // Préparation des données à envoyer et on met l'email et le MDP dans l'objet
+  const data = {
+    email: email,      
+    password: password   
+  };
+
+  // On envoie les données au serveur
+  fetch('http://localhost:5678/api/users/login', { 
+    method: 'POST',                                 
+    headers: { 'Content-Type': 'application/json' }, 
+    body: JSON.stringify(data)                     
+  })
+
+  // Si tout va bien, on récupère le token
+  .then(function(data) {
+    const token = data.token; // On prend le token dans la réponse
+    console.log(token);
+    localStorage.setItem('token', token); // On le garde en mémoire
+    window.location.href = 'index.html';  // On va sur la page d'accueil
+  })
+
+  // Si il y a une erreur (mauvais identifiants ou problème serveur)
+  .catch(function(error) {
+    const messageErreur = document.getElementById('error-message'); // On prend le paragraphe
+    messageErreur.textContent = error.message; // On écrit le message d'erreur
+  });
+});
