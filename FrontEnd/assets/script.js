@@ -103,42 +103,142 @@ function afficherFiltresBoutons(data) {
     });
   }
   
-// Récupération du formulaire grâce à son id
+// Récupération du formulaire de connexion
 const form = document.getElementById('login-form');
 
-// On attend de voir ce que l'utilisateur envoie le formulaire et on empeche la page de se recharger
-form.addEventListener('submit', async(event) => {
-  event.preventDefault();
+if (form) {
+// On écoute l’événement "submit" du formulaire
+form.addEventListener('submit', async (event) => {
+  event.preventDefault(); // Empêche le rechargement de la page
 
-
-  // Récupération de ce que l'utilisateur a écrit dans les champs
+  // Récupère ce que l’utilisateur a tapé dans les champs
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
-  // Préparation des données à envoyer et on met l'email et le MDP dans l'objet
-  const data = {
-    email: email,      
-    password: password   
-  };
+  // Récupère la balise pour afficher les erreurs
+  const messageErreur = document.getElementById('error-message');
 
-  // On envoie les données au serveur
-   const response = await fetch('http://localhost:5678/api/users/login', { 
-    method: 'POST',                                 
-    headers: { 'Content-Type': 'application/json' }, 
-    body: JSON.stringify(data)                     
-  })
+  // Efface les anciens messages
+  messageErreur.textContent = '';
 
-  // Si tout va bien, on récupère le token
-  .then(function(data) {
-    const token = response.json(); // On prend le token dans la réponse
-    console.log(token);
-    localStorage.setItem('token', token); // On le garde en mémoire
-    window.location.href = 'index.html';  // On va sur la page d'accueil
-  })
+  try {
+    // Envoie une requête POST à l’API avec les identifiants
+    const response = await fetch('http://localhost:5678/api/users/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
 
-  // Si il y a une erreur (mauvais identifiants ou problème serveur)
-  .catch(function(error) {
-    const messageErreur = document.getElementById('error-message'); // On prend le paragraphe
-    messageErreur.textContent = error.message; // On écrit le message d'erreur
+    // Si l’email ou le mot de passe est incorrect
+    if (response.status === 401) {
+      messageErreur.textContent = 'Email ou mot de passe incorrect.';
+      return; // Arrête le code ici
+    }
+
+    // Si une autre erreur est survenue
+    if (!response.ok) {
+      messageErreur.textContent = 'Erreur serveur. Veuillez réessayer plus tard.';
+      return;
+    }
+
+    // Si tout est bon, on extrait les données JSON
+    const data = await response.json();
+
+    // On affiche le token dans la console
+    console.log("Token reçu :", data.token);
+
+    // On stocke le token dans le localStorage
+    localStorage.setItem('token', data.token);
+
+    // Redirection vers la page d’accueil
+    window.location.href = 'index.html';
+
+  } catch (error) {
+    // Si la requête n’a pas pu être envoyée (ex: serveur éteint)
+    messageErreur.textContent = 'Impossible de se connecter au serveur.';
+    console.error(error);
+  }
+});
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  const modifyBtn   = document.getElementById('modify-btn');
+  const modal       = document.getElementById('modal');
+  const overlay     = modal.querySelector('.modal-overlay');
+  const closeBtn    = document.getElementById('close-btn');
+  const gallery     = document.getElementById('gallery');
+  const fileInput   = document.getElementById('file-input');
+  const addPhotoBtn = document.getElementById('add-photo-btn');
+
+  // Stocke { id, src } pour chaque image
+  let images = [];
+
+  // Afficher la galerie à partir du tableau images
+  function renderGallery() {
+    gallery.innerHTML = '';
+    images.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML =
+        `<img src="${item.src}" alt="Photo ${item.id}">
+         <button class="delete-btn" data-id="${item.id}">×</button>`;
+      gallery.appendChild(div);
+    });
+    // on rattache l’event de suppression
+    gallery.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = btn.dataset.id;
+        // appeler ton DELETE avant de retirer du DOM
+        images = images.filter(i => i.id !== Number(id));
+        renderGallery();
+      });
+    });
+  }
+
+  //on récupére les photos depuis le back-end
+  function loadImages() {
+    fetch("http://localhost:5678/api/works")            //on l' adapte àl’URL si besoin
+      .then(res => {
+        if (!res.ok) throw new Error('Status ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        // transforme r chaque work en (id, src)
+        images = data.map(work => ({
+          id:  work.id,
+          src: work.imageUrl
+        }));
+        renderGallery();
+      })
+      .catch(err => {
+        console.error('Erreur chargement photos :', err);
+        alert("Impossible de charger la galerie.");
+      });
+  }
+
+  // Ouvrir er fermer la modale
+  modifyBtn.addEventListener('click', function() {
+    modal.classList.remove('hidden');
+    loadImages();    // on charge depuis le back à chaque ouverture
+  });
+  closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+  overlay .addEventListener('click', () => modal.classList.add('hidden'));
+
+  // on ajouter une photo pour la lecture en base
+  addPhotoBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', function() {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      // pour un vrai back il faut faire un fetch POST,
+      // puis re-loadImages() ou push dans images[] avec l'ID renvoyé.
+      images.push({ id: Date.now(), src: e.target.result });
+      renderGallery();
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = '';
   });
 });
+
+
