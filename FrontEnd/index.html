@@ -7,17 +7,21 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Work+Sans&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer">
 	<meta name="description" content="">
 	<link rel="stylesheet" href="./assets/style.css">
 </head>
 <body>
-<header>
+<div id="topbar" class="hidden">
+	<i id="modifyBtnTopbar" class="fa-regular fa-pen-to-square hidden"></i> <label class="edition">Mode édition</label>
+</div>
+<header>	
 	<h1>Sophie Bluel <span>Architecte d'intérieur</span></h1>
 	<nav>
 		<ul>
 			<li>projets</li>
 			<li>contact</li>
-			<li>login</li>
+			<li><a id="loginlink" href="login.html">login</a></li>
 			<li><img src="./assets/icons/instagram.png" alt="Instagram"></li>
 		</ul>
 	</nav>
@@ -35,9 +39,11 @@
 		</article>
 	</section>
 	<section id="portfolio">
-		<h2>Mes Projets</h2> 
-		  <button id="modify-btn">Modifier</button>
-		<div class="filtres"> </div>
+		<div class="ProjetContainer">
+			<div><h2>Mes Projets</h2></div>
+			<div class="iconModifier"><i id="modifyBtn" class="fa-regular fa-pen-to-square hidden"></i> <label id="modif" class="modifier hidden">Modifier</label></div>
+		</div>
+		<div class="filtres" id="filtres"> </div>
 		</div>
 		<div class="gallery">
 		</div>
@@ -64,24 +70,64 @@
 		</ul>
 	</nav>
 </footer>
-  <!-- création de la modale -->
-  <div id="modal" class="hidden">
-    <div class="modal-overlay"></div>
-    <div class="modal-content">
-	<!-- La croix de fermeture en haut à droite -->
-      <h2>Galerie photo</h2>
-      <button id="close-btn" class="close-btn">&times;</button>
 
-      <!-- Un conteneur des vignettes -->
-      <div id="gallery" class="gallery"></div>
+  <!-- juste avant <header> -->
+<div id="modal" class="hidden">
+	<div class="modal-overlay"></div>
+	<div class="modal-content">
+	<div id="AfficherGallerie">  
+	  <h2>Galerie photo</h2>
+	  <button id="close-btn" class="close-btn">&times;</button>
+	  <div id="gallery" class="gallery"></div>
+	  <input type="file" id="file-input" accept="image/*" hidden>
+	  <button id="add-photo-btn">Ajouter une photo</button>
+	</div>
+	  <!-- contenu de la modale pour ajouter une nouvelle photo -->
+	<div id="AjoutPhoto" class="hidden">
+		<i id="btn-back" class="fa-solid fa-left-long btn-back"></i>
+	<form id="add-form">
+		<h2>Ajout photo</h2>
+  
+		<div id="preview-area" class="preview-area">
+	 	 <p>Aucune image sélectionnée</p>
+		</div>
+  
+		<label for="file-input" class="btn">
+		  + Ajouter photo<br><small>jpg, png ; max 4 Mo</small>
+		</label>
 
-      <!-- input fichier caché -->
-      <input type="file" id="file-input" accept="image/*" hidden>
-      <!-- un seul bouton d’ajout -->
-      <button id="add-photo-btn">Ajouter une photo</button>
-    </div>
+  		<label for="photo-title">Titre</label>
+		<input type="text" id="photo-title" placeholder="Titre" required >
+  
+		<label for="photo-category">Catégorie</label>
+		<select id="photo-category" required >
+	 	 <option value="">-- Choisir une catégorie --</option>
+		</select>
+  
+		<hr id="form-separator" >
+  
+		<button id="btn-valider" class="btn-valider">
+		  Valider
+		</button>
+	</form>
   </div>
-
+  
+	</div>
+  </div>
+  
+  <section id="portfolio">
+	<div class="ProjetContainer">
+	  <div><h2>Mes Projets</h2></div>
+	  <div class="iconModifier">
+		<!-- on garde id="modifyBtn" -->
+		<i id="modifyBtn" class="fa-regular fa-pen-to-square hidden"></i>
+		<label id="modif" class="modifier hidden">Modifier</label>
+	  </div>
+	</div>
+	<div class="filtres" id="filtres"></div>
+	<div class="gallery"></div>
+  </section>
+  
 <script src="assets/script.js" defer></script>
 </body>
 </html>

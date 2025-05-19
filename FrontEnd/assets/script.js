@@ -162,7 +162,7 @@ form.addEventListener('submit', async (event) => {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-  const modifyBtn   = document.getElementById('modify-btn');
+  const modifyBtn   = document.getElementById('modifyBtn');
   const modal       = document.getElementById('modal');
   const overlay     = modal.querySelector('.modal-overlay');
   const closeBtn    = document.getElementById('close-btn');
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const fileInput   = document.getElementById('file-input');
   const addPhotoBtn = document.getElementById('add-photo-btn');
 
-  // Stocke { id, src } pour chaque image
+  // Stocke (id, src) pour chaque image
   let images = [];
 
   // Afficher la galerie à partir du tableau images
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
       div.className = 'item';
       div.innerHTML =
         `<img src="${item.src}" alt="Photo ${item.id}">
-         <button class="delete-btn" data-id="${item.id}">×</button>`;
+         <button class="delete-btn" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>`;
       gallery.appendChild(div);
     });
     // on rattache l’event de suppression
@@ -224,21 +224,76 @@ document.addEventListener('DOMContentLoaded', function() {
   closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
   overlay .addEventListener('click', () => modal.classList.add('hidden'));
 
-  // on ajouter une photo pour la lecture en base
-  addPhotoBtn.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', function() {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      // pour un vrai back il faut faire un fetch POST,
-      // puis re-loadImages() ou push dans images[] avec l'ID renvoyé.
-      images.push({ id: Date.now(), src: e.target.result });
-      renderGallery();
-    };
-    reader.readAsDataURL(file);
-    fileInput.value = '';
-  });
 });
 
+
+// Gestion de la connexion et déconnexion //
+
+document.addEventListener("DOMContentLoaded", () => {
+  //  On récupère tous les éléments dont on a besoin
+  const loginLink  = document.getElementById("loginlink");   // Lien login/logout
+  const topbar  = document.getElementById("topbar");   
+  const modifyBtnTopbar  = document.getElementById("modifyBtnTopbar");   // le bouton "modifier" du topbar
+  const modifyBtn  = document.getElementById("modifyBtn");   // bouton "modifier"
+  const filtres = document.querySelector(".filtres");      // la zone de filtres
+  const modif = document.querySelector(".modifier");    
+
+
+  //La fonction qui met à jour l'affichage selon la présence du token et on relit le token à chaque appel pour changer de valeur
+  function toggleEditMode() {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      //Utilisateur connecté
+      topbar.classList.remove("hidden");   // afficher le pré-header
+      modifyBtnTopbar.classList.remove("hidden");   // afficher le bouton Modifier top bar
+      modifyBtn.classList.remove("hidden");      // afficher le bouton Modifier
+      modif.classList.remove("hidden");        // cacher le libelle Modifier 
+      filtres.classList.add("hidden");        // masquer les filtres
+      loginLink.textContent = "logout";      // changer le texte du lien
+      loginLink.href = "login.html";        
+    } else {
+      // Utilisateur déconnecté 
+      topbar.classList.add("hidden");      // cacher le pré-header
+      modifyBtnTopbar.classList.add("hidden");      // cacher le bouton Modifier du top bar
+      modifyBtn.classList.add("hidden");           // cacher le bouton Modifier top bar
+      modif.classList.add("hidden");   // cacher le libelle Modifier 
+      filtres.classList.remove("hidden");  // afficher les filtres
+      loginLink.textContent = "login";        // remettre "login"
+      loginLink.href = "login.html";          // lien vers la page de connexion
+    }
+  }
+
+  // brancher un seul listener sur loginLink
+  loginLink.addEventListener("click", (e) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      // logout
+      e.preventDefault();                 // empêche tout rechargementou navig
+      localStorage.removeItem("token");   // on supprime le token
+      toggleEditMode();                   // on rafraîchit
+    }
+    // s'il n'ya pas de token, c'est un login 
+  });
+
+  // Initialisation de l'affichage dès le chargement
+  toggleEditMode();
+
+  // continue avec le fetch de galerie, le filtre, la modale,
+});
+
+
+// Récupération des éléments de l'ajout de photo
+const addPhotoBtn   = document.getElementById("add-photo-btn");
+const viewAdd       = document.getElementById("AjoutPhoto");
+const mainGallery   = document.getElementById("AfficherGallerie"); // galerie page d’accueil
+
+// Bascule Galerie à l' Ajout 
+addPhotoBtn.addEventListener("click", () => {
+  // Masquer tout ce qui est galerie
+  mainGallery.classList.add("hidden");
+  // Afficher la vue ajout
+  viewAdd.classList.remove("hidden");
+});
 
