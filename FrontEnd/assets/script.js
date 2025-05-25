@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const modal       = document.getElementById('modal');
   const overlay     = modal.querySelector('.modal-overlay');
   const closeBtn    = document.getElementById('close-btn');
-  const gallery     = document.getElementById('gallery');
+  const galleryM     = document.getElementById('galleryModal');
   const fileInput   = document.getElementById('file-input');
   const addPhotoBtn = document.getElementById('add-photo-btn');
 
@@ -174,23 +174,23 @@ document.addEventListener('DOMContentLoaded', function() {
   let images = [];
 
   // Afficher la galerie à partir du tableau images
-  function renderGallery() {
-    gallery.innerHTML = '';
+  function renderGalleryM() {
+    galleryM.innerHTML = '';
     images.forEach((item, idx) => {
       const div = document.createElement('div');
       div.className = 'item';
       div.innerHTML =
         `<img src="${item.src}" alt="Photo ${item.id}">
          <button class="delete-btn" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>`;
-      gallery.appendChild(div);
+      galleryM.appendChild(div);
     });
     // on rattache l’event de suppression
-    gallery.querySelectorAll('.delete-btn').forEach(btn => {
+    galleryM.querySelectorAll('.delete-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const id = btn.dataset.id;
         // appeler ton DELETE avant de retirer du DOM
         images = images.filter(i => i.id !== Number(id));
-        renderGallery();
+        renderGalleryM();
       });
     });
   }
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
           id:  work.id,
           src: work.imageUrl
         }));
-        renderGallery();
+        renderGalleryM();
       })
       .catch(err => {
         console.error('Erreur chargement photos :', err);
@@ -270,7 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (token) {
       // logout
-      e.preventDefault();                 // empêche tout rechargementou navig
+      e.preventDefault();                 // empêche tout rechargement ou navig
       localStorage.removeItem("token");   // on supprime le token
       toggleEditMode();                   // on rafraîchit
     }
@@ -280,7 +280,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialisation de l'affichage dès le chargement
   toggleEditMode();
 
-  // continue avec le fetch de galerie, le filtre, la modale,
 });
 
 
@@ -288,6 +287,16 @@ document.addEventListener("DOMContentLoaded", () => {
 const addPhotoBtn   = document.getElementById("add-photo-btn");
 const viewAdd       = document.getElementById("AjoutPhoto");
 const mainGallery   = document.getElementById("AfficherGallerie"); // galerie page d’accueil
+const backToGalleryBtn = document.getElementById('btn-back');
+
+// Revenir en arrière sur la galerie
+
+if (backToGalleryBtn) {
+  backToGalleryBtn.addEventListener('click', () => {
+    viewAdd.classList.add("hidden");
+    mainGallery.classList.remove("hidden");
+  });
+}
 
 // Bascule Galerie à l' Ajout 
 addPhotoBtn.addEventListener("click", () => {
