@@ -184,26 +184,45 @@ document.addEventListener('DOMContentLoaded', function() {
          <button class="delete-btn" data-id="${item.id}"><i class="fa-solid fa-trash"></i></button>`;
       galleryM.appendChild(div);
     });
-    // on rattache l’event de suppression
-    galleryM.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const id = btn.dataset.id;
-        // appeler ton DELETE avant de retirer du DOM
-        images = images.filter(i => i.id !== Number(id));
-        renderGalleryM();
+    // on rattache l’event de suppression après avoir inséré chaque <button class="delete-btn" data-id="...">…
+      galleryM.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+    // On récupère l'id du work à supprimer
+    const id = this.dataset.id;
+    try {
+      //  On envoie la requête DELETE à l'API
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5678/api/works/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
       });
-    });
+      if (!response.ok) throw new Error("Status " + response.status);
+
+      //  Si tout est ok, on retire l'élément du tableau 'images'
+      images = images.filter(item => item.id !== Number(id));
+      renderGalleryM();  // ré-affiche la modale sans cet item
+
+      // On retire aussi du tableau global et on rafraîchit la galerie principale
+      travauxGlobal = travauxGlobal.filter(t => t.id !== Number(id));
+      listerTravaux(travauxGlobal);
+
+    } catch(err) {
+      console.error("Erreur suppression :", err);
+      alert("Impossible de supprimer ce projet.");
+    }
+  });
+});
   }
 
   //on récupére les photos depuis le back-end
   function loadImages() {
-    fetch("http://localhost:5678/api/works")            //on l' adapte àl’URL si besoin
+    fetch("http://localhost:5678/api/works")            //et on l' adapte àl’URL si besoin
       .then(res => {
         if (!res.ok) throw new Error('Status ' + res.status);
         return res.json();
       })
       .then(data => {
-        // transforme r chaque work en (id, src)
+        // on transforme chaque work en (id, src)
         images = data.map(work => ({
           id:  work.id,
           src: work.imageUrl
@@ -224,8 +243,63 @@ document.addEventListener('DOMContentLoaded', function() {
   closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
   overlay .addEventListener('click', () => modal.classList.add('hidden'));
 
-});
+    // La Gestion de l’envoi du nouveau projet
+    const btnValider = document.getElementById("btn-valider");
+    btnValider.addEventListener("click", async (e) => {
+      e.preventDefault();
 
+      // Récupèration des champs
+      const fileInput   = document.getElementById("file-input");
+      const titreInput  = document.getElementById("titre-photos");
+      const catSelect   = document.getElementById("photo-category");
+      const file        = fileInput.files[0];
+      const titre       = titreInput.value.trim();
+      const categoryId  = catSelect.value;
+  
+      //  Vérifier que tout est rempli
+      if (!file || !titre || !categoryId) {
+        alert("Veuillez remplir tous les champs et choisir une image.");
+        return;
+      }
+  
+      // Prépare le FormData
+      const formData = new FormData();
+      formData.append("image",    file);
+      formData.append("title",    titre);
+      formData.append("category", categoryId);
+  
+      try {
+        // Envoi en POST avec le token
+        const token = localStorage.getItem("token");
+        const res = await fetch("http://localhost:5678/api/works", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${token}` },
+          body: formData
+        });
+        if (!res.ok) throw new Error("Status " + res.status);
+  
+        // Récupèration du nouvel objet renvoyé
+        const newWork = await res.json();
+  
+        //  Ajouter dynamiquement dans la modale
+        images.push({ id: newWork.id, src: newWork.imageUrl });
+        renderGalleryM();
+  
+        // Ajouter aussi dans la galerie principale
+        travauxGlobal.push(newWork);
+        listerTravaux(travauxGlobal);
+  
+        // Vide le formulaire et fermer la vue ajout
+        document.getElementById("add-form").reset();
+        document.getElementById("view-add").classList.add("hidden");
+        document.getElementById("view-gallery").classList.remove("hidden");
+        modal.classList.add("hidden");
+      } catch(err) {
+        console.error("Erreur d'ajout :", err);
+        alert("Impossible d'ajouter ce projet.");
+      }
+    });
+});
 
 // Gestion de la connexion et déconnexion //
 
@@ -237,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const modifyBtn  = document.getElementById("modifyBtn");   // bouton "modifier"
   const filtres = document.querySelector(".filtres");      // la zone de filtres
   const modif = document.querySelector(".modifier");    
-
 
   //La fonction qui met à jour l'affichage selon la présence du token et on relit le token à chaque appel pour changer de valeur
   function toggleEditMode() {
@@ -282,7 +355,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-
 // Récupération des éléments de l'ajout de photo
 const addPhotoBtn   = document.getElementById("add-photo-btn");
 const viewAdd       = document.getElementById("AjoutPhoto");
@@ -306,3 +378,24 @@ addPhotoBtn.addEventListener("click", () => {
   viewAdd.classList.remove("hidden");
 });
 
+// Sélectionne ton <select>
+const categorySelect = document.getElementById("photo-category");
+
+// Appelle l'API pour récupérer les catégories
+fetch("http://localhost:5678/api/categories")
+  .then(response => response.json())
+  .then(categories => {
+    // Pour chaque catégorie reçue...
+    categories.forEach(cat => {
+      // Crée un <option> avec id et nom
+      const option = document.createElement("option");
+      option.value = cat.id;       // valeur = identifiant de la catégorie
+      option.textContent = cat.name; // texte = nom de la catégorie
+      // Ajoute cette option au <select>
+      categorySelect.appendChild(option);
+    });
+  })
+  .catch(error => {
+    console.error("Erreur chargement catégories :", error);
+    alert("Impossible de charger les catégories.");
+  });

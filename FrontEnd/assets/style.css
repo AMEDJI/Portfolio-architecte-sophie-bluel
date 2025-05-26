@@ -515,12 +515,18 @@ footer nav ul {
 	padding: 8px 12px;
 	margin: 8px 0;
   }
-  .btn, .btn-valider {
-	background-color: #112B34;
-	color: #fff;
-	border: none;
-	border-radius: 4px;
-  }
+  
+	
+.btn, .btn-valider {
+    /* background-color: #112B34; */
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    display: flex;
+    justify-content: center;
+    margin-left: 35%;
+}
+  
   .btn-back {
 	background: none; 
 	border: none; 
@@ -537,4 +543,14 @@ footer nav ul {
     margin: auto;
     padding-bottom: 30px;
 }
-  
+
+.title-content{
+	margin-bottom: 30px;
+    margin-left: 86px;
+	padding-top: 30px;
+}
+
+.category-content{
+	margin-bottom: 30px;
+    margin-left: 86px;
+}

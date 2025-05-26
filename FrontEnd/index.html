@@ -86,34 +86,33 @@
 	  <!-- contenu de la modale pour ajouter une nouvelle photo -->
 	<div id="AjoutPhoto" class="hidden">
 		<button id="btn-back" class="btn-back"><i class="fa-solid fa-arrow-left"></i></button>
-
+		<button id="close-btn" class="close-btn">&times;</button>
 		<h2>Ajout photo</h2>
-  
 		<div id="preview-area" class="preview-area">
 			<i class="fa-regular fa-image preview-icon"></i>
 			<!-- Label pour déclencher l’input file caché -->
 			<label for="file-input" class="btn-upload">+ Ajouter photo</label>
 			<p class="preview-text">jpg, png : 4 Mo max</p>
-		  </div>
-		  <form id="add-form">
-			
+		</div>
+		  <form id="add-form">	
+		<div class="title-content">
   		<label for="Titre-photo">Titre</label>
 		<input type="text" id="titre-photos" placeholder="Titre" required >
-	
+		</div>
+		<div class="category-content">
 		<label for="photo-category">Catégorie</label>
 		<select id="photo-category" required >
 	 	 <option value="">Choisir une catégorie</option>
 		</select>
-  
+		</div>
 		<hr id="form-separator" >
-  
-		<button id="btn-valider" class="btn-valider">
+  		<button id="btn-valider" class="btn-valider">
 		  Valider
 		</button>
 	</form>
   </div>
-  
-	</div>
+
+</div>
   </div>
   
   <section id="portfolio">
