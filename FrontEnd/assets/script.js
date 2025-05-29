@@ -169,6 +169,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const galleryM     = document.getElementById('galleryModal');
   const fileInput   = document.getElementById('file-input');
   const addPhotoBtn = document.getElementById('add-photo-btn');
+  const viewGallery    = document.getElementById("AfficherGallerie");
+  const viewAdd        = document.getElementById("AjoutPhoto");
+  const backBtn        = document.getElementById("btn-back");
+  const previewArea    = document.getElementById("preview-area");
+  const titleInput     = document.getElementById("photo-title");
+  const categorySelect = document.getElementById("photo-category");
+  const submitBtn      = document.getElementById("submit-btn");
+  const mainGallery    = document.querySelector(".gallery");
+
 
   // Stocke (id, src) pour chaque image
   let images = [];
@@ -235,70 +244,113 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-  // Ouvrir er fermer la modale
+  // Ouvrir et fermer la modale
   modifyBtn.addEventListener('click', function() {
     modal.classList.remove('hidden');
     loadImages();    // on charge depuis le back à chaque ouverture
   });
   closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-  overlay .addEventListener('click', () => modal.classList.add('hidden'));
+  overlay.addEventListener('click', () => modal.classList.add('hidden'));
 
-    // La Gestion de l’envoi du nouveau projet
-    const btnValider = document.getElementById("btn-valider");
-    btnValider.addEventListener("click", async (e) => {
-      e.preventDefault();
 
-      // Récupèration des champs
-      const fileInput   = document.getElementById("file-input");
-      const titreInput  = document.getElementById("titre-photos");
-      const catSelect   = document.getElementById("photo-category");
-      const file        = fileInput.files[0];
-      const titre       = titreInput.value.trim();
-      const categoryId  = catSelect.value;
-  
-      //  Vérifier que tout est rempli
-      if (!file || !titre || !categoryId) {
-        alert("Veuillez remplir tous les champs et choisir une image.");
-        return;
-      }
-  
-      // Prépare le FormData
-      const formData = new FormData();
-      formData.append("image",    file);
-      formData.append("title",    titre);
-      formData.append("category", categoryId);
-  
-      try {
-        // Envoi en POST avec le token
-        const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5678/api/works", {
-          method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
-          body: formData
-        });
-        if (!res.ok) throw new Error("Status " + res.status);
-  
-        // Récupèration du nouvel objet renvoyé
-        const newWork = await res.json();
-  
-        //  Ajouter dynamiquement dans la modale
-        images.push({ id: newWork.id, src: newWork.imageUrl });
-        renderGalleryM();
-  
-        // Ajouter aussi dans la galerie principale
-        travauxGlobal.push(newWork);
-        listerTravaux(travauxGlobal);
-  
-        // Vide le formulaire et fermer la vue ajout
-        document.getElementById("add-form").reset();
-        document.getElementById("view-add").classList.add("hidden");
-        document.getElementById("view-gallery").classList.remove("hidden");
-        modal.classList.add("hidden");
-      } catch(err) {
-        console.error("Erreur d'ajout :", err);
-        alert("Impossible d'ajouter ce projet.");
-      }
+// ───── 0. Charger les catégories dès le départ ─────
+fetch("http://localhost:5678/api/categories")
+  .then(res => res.json())
+  .then(cats => {
+    // Pour chaque catégorie reçue, on ajoute une <option>
+    cats.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value       = cat.id;
+      opt.textContent = cat.name;
+      categorySelect.appendChild(opt);
     });
+  })
+  .catch(err => console.error("Erreur catégories :", err));
+
+// ───── 1. Bascule Galerie ⇄ Ajout-photo ─────
+addPhotoBtn.addEventListener("click", () => {
+  viewGallery.classList.add("hidden");
+  viewAdd.classList.remove("hidden");
+});
+backBtn.addEventListener("click", () => {
+  viewAdd.classList.add("hidden");
+  viewGallery.classList.remove("hidden");
+  // Remise à zéro du formulaire et de la preview
+  fileInput.value        = "";
+  titleInput.value       = "";
+  titleInput.disabled    = true;
+  categorySelect.value   = "";
+  categorySelect.disabled= true;
+  submitBtn.disabled     = true;
+  previewArea.innerHTML  = `
+    <i class="fa-regular fa-image preview-icon"></i>
+    <label for="file-input" class="btn-upload">+ Ajouter photo</label>
+    <p class="preview-text">jpg, png : 4 Mo max</p>
+  `;
+});
+
+// ───── 2. Preview + activation progressive ─────
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file) return;  // si on annule, on fait rien
+
+  // Affiche l’aperçu
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewArea.innerHTML = `<img src="${e.target.result}" alt="Aperçu" />`;
+  };
+  reader.readAsDataURL(file);
+
+  // Active les champs Titre, Catégorie et le bouton Valider
+  titleInput.disabled      = false;
+  categorySelect.disabled  = false;
+  submitBtn.disabled       = false;
+});
+
+// ───── 3. Soumission du formulaire ─────
+submitBtn.addEventListener("click", async e => {
+  e.preventDefault();
+
+  // Vérifie que tout est rempli
+  if (!fileInput.files[0] || !titleInput.value.trim() || !categorySelect.value) {
+    return alert("Veuillez remplir tous les champs.");
+  }
+
+  // Prépare FormData
+  const formData = new FormData();
+  formData.append("image",    fileInput.files[0]);
+  formData.append("title",    titleInput.value.trim());
+  formData.append("category", categorySelect.value);
+
+  try {
+    // Envoi au back-end
+    const token    = localStorage.getItem("token");
+    const response = await fetch("http://localhost:5678/api/works", {
+      method:  "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body:    formData
+    });
+    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+    const newWork = await response.json();
+
+    // Ajoute la nouvelle photo dans la galerie principale
+    const fig = document.createElement("figure");
+    fig.innerHTML = `
+      <img src="${newWork.imageUrl}" alt="${newWork.title}">
+      <figcaption>${newWork.title}</figcaption>
+    `;
+    mainGallery.appendChild(fig);
+
+    // Réinitialise et ferme la modale
+    backBtn.click();
+    modal.classList.add("hidden");
+
+  } catch (err) {
+    console.error("Échec ajout photo :", err);
+    alert("Impossible d'ajouter la photo.");
+  }
+});
+
 });
 
 // Gestion de la connexion et déconnexion //
@@ -354,48 +406,3 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleEditMode();
 
 });
-
-// Récupération des éléments de l'ajout de photo
-const addPhotoBtn   = document.getElementById("add-photo-btn");
-const viewAdd       = document.getElementById("AjoutPhoto");
-const mainGallery   = document.getElementById("AfficherGallerie"); // galerie page d’accueil
-const backToGalleryBtn = document.getElementById('btn-back');
-
-// Revenir en arrière sur la galerie
-
-if (backToGalleryBtn) {
-  backToGalleryBtn.addEventListener('click', () => {
-    viewAdd.classList.add("hidden");
-    mainGallery.classList.remove("hidden");
-  });
-}
-
-// Bascule Galerie à l' Ajout 
-addPhotoBtn.addEventListener("click", () => {
-  // Masquer tout ce qui est galerie
-  mainGallery.classList.add("hidden");
-  // Afficher la vue ajout
-  viewAdd.classList.remove("hidden");
-});
-
-// Sélectionne ton <select>
-const categorySelect = document.getElementById("photo-category");
-
-// Appelle l'API pour récupérer les catégories
-fetch("http://localhost:5678/api/categories")
-  .then(response => response.json())
-  .then(categories => {
-    // Pour chaque catégorie reçue...
-    categories.forEach(cat => {
-      // Crée un <option> avec id et nom
-      const option = document.createElement("option");
-      option.value = cat.id;       // valeur = identifiant de la catégorie
-      option.textContent = cat.name; // texte = nom de la catégorie
-      // Ajoute cette option au <select>
-      categorySelect.appendChild(option);
-    });
-  })
-  .catch(error => {
-    console.error("Erreur chargement catégories :", error);
-    alert("Impossible de charger les catégories.");
-  });

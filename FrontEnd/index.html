@@ -96,18 +96,17 @@
 		</div>
 		  <form id="add-form">	
 		<div class="title-content">
-  		<label for="Titre-photo">Titre</label>
-		<input type="text" id="titre-photos" placeholder="Titre" required >
+		<label for="photo-title">Titre</label>
+		<input type="text" id="photo-title" placeholder="Titre" required disabled>
 		</div>
 		<div class="category-content">
 		<label for="photo-category">Catégorie</label>
-		<select id="photo-category" required >
+		<select id="photo-category" required disabled>
 	 	 <option value="">Choisir une catégorie</option>
 		</select>
 		</div>
 		<hr id="form-separator" >
-  		<button id="btn-valider" class="btn-valider">
-		  Valider
+		<button id="submit-btn" class="btn-valider" disabled>Valider
 		</button>
 	</form>
   </div>
@@ -128,6 +127,10 @@
 	<div class="galleryAjout"></div>
   </section>
   
-<script src="assets/script.js" defer></script>
+  <script src="assets/js/works.js"       defer></script>
+  <script src="assets/js/filters.js"     defer></script>
+  <script src="assets/js/auth.js"        defer></script>
+  <script src="assets/js/modal.js"       defer></script>
+  <script src="assets/js/addPhoto.js"    defer></script>
 </body>
 </html>
