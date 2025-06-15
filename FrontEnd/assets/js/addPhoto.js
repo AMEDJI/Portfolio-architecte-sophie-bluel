@@ -25,7 +25,20 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Erreur catégories :', err));
 
-  // Basculer Galerie à Ajout-photo
+  // Désactiver par défaut
+  titleInput.disabled     = true;
+  categorySelect.disabled = true;
+  submitBtn.disabled      = true;
+
+  // Fonction qui active/désactive le bouton Valider
+  function updateSubmitState() {
+    const hasFile  = fileInput.files.length > 0;
+    const hasTitle = titleInput.value.trim()  !== '';
+    const hasCat   = categorySelect.value     !== '';
+    submitBtn.disabled = !(hasFile && hasTitle && hasCat);
+  }
+
+  // Bascule Galerie → Ajout-photo
   addPhotoBtn.addEventListener('click', () => {
     viewGallery.classList.add('hidden');
     viewAdd.classList.remove('hidden');
@@ -38,16 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
     previewArea.innerHTML  = `
       <i class="fa-regular fa-image preview-icon"></i>
       <label for="file-input" class="btn-upload">+ Ajouter photo</label>
-      <p class="preview-text">jpg, png : 4 Mo max</p>
-    `;
+      <p class="preview-text">jpg, png : 4 Mo max</p>`;
     titleInput.value       = '';
     titleInput.disabled    = true;
     categorySelect.value   = '';
     categorySelect.disabled= true;
-    submitBtn.disabled     = true;
+    updateSubmitState();   // désactive le bouton
   });
 
-  // Preview + activation progressive
+  // Preview + activation progressive des champs
   fileInput.addEventListener('change', () => {
     const file = fileInput.files[0];
     if (!file) return;
@@ -59,16 +71,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     reader.readAsDataURL(file);
 
-    // Préremplir le titre sans l’extension
-    const name       = file.name;
-    const dotIndex   = name.lastIndexOf('.');
-    titleInput.value = dotIndex > 0 ? name.slice(0, dotIndex) : name;
+    // Active les champs Titre & Catégorie
+    titleInput.disabled     = false;
+    categorySelect.disabled = false;
 
-    // Activer les champs
-    titleInput.disabled      = false;
-    categorySelect.disabled  = false;
-    submitBtn.disabled       = false;
+    updateSubmitState();  // réévalue le bouton
   });
+
+  // À chaque saisie dans le titre, on réévalue
+  titleInput.addEventListener('input', updateSubmitState);
+
+  // À chaque changement de catégorie, on réévalue
+  categorySelect.addEventListener('change', updateSubmitState);
 
   // Soumission du formulaire
   submitBtn.addEventListener('click', async e => {
@@ -92,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Authorization': `Bearer ${token}` },
         body:    formData
       });
+
       if (!response.ok) throw new Error(response.status);
       const newWork = await response.json();
 
@@ -99,8 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const fig = document.createElement('figure');
       fig.innerHTML = `
         <img src="${newWork.imageUrl}" alt="${newWork.title}">
-        <figcaption>${newWork.title}</figcaption>
-      `;
+        <figcaption>${newWork.title}</figcaption>`;
       mainGallery.appendChild(fig);
 
       // Réinitialiser et fermer la modale
@@ -112,9 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Impossible d\'ajouter la photo.');
     }
   });
-  // AJOUT du BLOQUE pour fermer la vue “Ajout photo”
+
+  // Fermer la Vue Ajout avec la croix
   document.getElementById('addclose-btn').addEventListener('click', () => {
-    backBtn.click();           // remet le formulaire à zéro
-    modal.classList.add('hidden'); // cache la modale
+    backBtn.click();
+    modal.classList.add('hidden');
   });
 });
